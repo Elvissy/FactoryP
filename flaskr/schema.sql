@@ -1,4 +1,5 @@
 DROP TABLE IF EXISTS gongjian;
+DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS post;
 
 CREATE TABLE gongjian (
@@ -11,6 +12,15 @@ CREATE TABLE gongjian (
   hege INTEGER NOT NULL,
   address TEXT UNIQUE NOT NULL,
   created datetime NOT NULL
+);
+
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT NOT NULL,
+  password TEXT NOT NULL,
+  phone char(11) NOT NULL,
+  status INTEGER NOT NULL DEFAULT 0,
+  created_at datetime DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE post (

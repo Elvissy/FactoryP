@@ -1,7 +1,7 @@
 import os
 import time
 
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, session
 from flask_cors import *
 from flask import request
 import angle
@@ -22,6 +22,9 @@ def create_app(test_config=None):
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     )
+
+    # 使用session需要设置secret_key
+    app.secret_key = b'U9iaIxNzmrE5rbxJ'
 
     from . import db
     db.init_app(app)
@@ -90,6 +93,80 @@ def create_app(test_config=None):
     @app.route("/")
     def hello_world():
         return "<p>Hello, World!</p>"
+    
+    @app.route('/login',methods=["POST"])
+    def login():
+        # GET方式直接获取数据
+        # username=request.args.get("username")
+
+        # 用POST方式获取JSON数据
+        get_data = request.get_json()
+        #获取数据
+        username=get_data.get("username")
+        password=get_data.get("password")
+
+        if not username or not password:
+            return jsonify(msg="输入信息不完整")
+
+        # 链接数据库
+        with db.get_db() as conn:
+            cur = conn.cursor()
+
+            # 查询是否存在该用户
+            cur.execute("SELECT COUNT(*) FROM users WHERE username=? AND password=?", (username, password))
+            result = cur.fetchone()  # 查询结果的元组
+            count = result[0]  # 获取元组值
+
+            if count > 0:#存在该用户
+
+                # 查询该用户名的身份(权限)信息
+                cur.execute("SELECT status FROM users WHERE username=?", (username,))
+                status = cur.fetchone()[0]
+                # 把用户信息写进session中
+                session['username'] = username
+                session['status'] = status
+
+                return jsonify(msg="登陆成功")
+                # return redirect(url_for('index')) #或者直接重定向到系统主页面
+            else:
+                return jsonify(msg="用户名称或密码错误")
+            
+    @app.route('/register',methods=["POST"])
+    def register():
+        # GET方式直接获取数据
+        # username=request.args.get("username")
+
+        # 用POST方式获取JSON数据
+        get_data = request.get_json()
+        #获取数据
+        username=get_data.get("username")
+        password=get_data.get("password")
+        con_password=get_data.get("con_password")
+        phone=get_data.get("phone")
+
+        # 如果输入信息不全，返回提醒
+        if not username or not password or not con_password or not phone:
+            return jsonify(msg="输入信息不完整")
+        elif password != con_password:  #密码和确认密码是否相同
+            return jsonify(msg="请重新输入密码")
+
+        # 链接数据库
+        with db.get_db() as conn:
+            cur = conn.cursor()
+
+            # 查询用户是否已经存在
+            cur.execute("SELECT COUNT(*) FROM users where username=?",(username,))
+            result=cur.fetchone() #查询结果的元组
+            count=result[0] #获取元组值
+
+            if count > 0:
+                return jsonify(msg="该用户已经存在")
+            else:
+                #写入数据库
+                cur.execute("INSERT INTO users (username, password, phone) VALUES (?, ?, ?)",(username, password, phone))
+                conn.commit()
+                return jsonify(msg="增加用户成功")
+                # return redirect(url_for('login')) #或者直接重定向到登录页面
 
     @app.route('/huahen', methods=["POST", "GET"])
     def detect_huahen():
