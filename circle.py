@@ -50,6 +50,8 @@ class Circle:
             # cv2.destroyAllWindows()
         else:
             print("No circles found.")
-        return {
-            "circle": self.num
-        }
+        # return {
+        #     "circle": self.num
+        # }
+        return self.num
+    

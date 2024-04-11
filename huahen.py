@@ -31,15 +31,16 @@ class Huahen:
         print(len(contours))
         for i in range(0, len(contours)):
             length = cv.arcLength(contours[i], True)
-            print(length)
+            # print(length)
             # 通过轮廓长度筛选
             if length > 35:
                 cv.drawContours(gongjian, contours[i], -1, (0, 0, 255), 2)
                 self.qualif=1
-        plt.imshow(gongjian)
-        return{
-            "huahen":self.qualif
-        }
+        # plt.imshow(gongjian)
+        # return{
+        #     "huahen":self.qualif
+        # }
+        return self.qualif
 
 def cvtColor(image):
     if len(np.shape(image)) == 3 and np.shape(image)[2] == 3:

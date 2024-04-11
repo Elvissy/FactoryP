@@ -104,6 +104,7 @@ class Lenth:
             # 显示结果
             # cv2.imshow("Detected Lenth", orig)
             # cv2.waitKey(0)
-            return {
-                "lenth": self.lenth
-            }
+            # return {
+            #     "lenth": self.lenth
+            # }
+            return self.lenth

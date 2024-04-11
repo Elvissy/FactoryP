@@ -113,23 +113,32 @@ def create_app(test_config=None):
             cur = conn.cursor()
 
             # 查询是否存在该用户
-            cur.execute("SELECT COUNT(*) FROM users WHERE username=? AND password=?", (username, password))
+            cur.execute("SELECT COUNT(*) FROM users WHERE username=?", (username, ))
             result = cur.fetchone()  # 查询结果的元组
             count = result[0]  # 获取元组值
+            if count<=0: # 不存在该用户
+                return jsonify(msg="该用户不存在，请先注册")
+            else: # 存在该用户
 
-            if count > 0:#存在该用户
+                # 查询用户登录是否正确
+                cur.execute("SELECT COUNT(*) FROM users WHERE username=? AND password=?", (username, password))
+                result = cur.fetchone()  # 查询结果的元组
+                count = result[0]  # 获取元组值
 
-                # 查询该用户名的身份(权限)信息
-                cur.execute("SELECT status FROM users WHERE username=?", (username,))
-                status = cur.fetchone()[0]
-                # 把用户信息写进session中
-                session['username'] = username
-                session['status'] = status
 
-                return jsonify(msg="登陆成功")
-                # return redirect(url_for('index')) #或者直接重定向到系统主页面
-            else:
-                return jsonify(msg="用户名称或密码错误")
+                if count > 0:#存在该用户
+
+                    # 查询该用户名的身份(权限)信息
+                    cur.execute("SELECT status FROM users WHERE username=?", (username,))
+                    status = cur.fetchone()[0]
+                    # 把用户信息写进session中
+                    session['username'] = username
+                    session['status'] = status
+
+                    return jsonify(msg="登陆成功")
+                    # return redirect(url_for('index')) #或者直接重定向到系统主页面
+                else:
+                    return jsonify(msg="用户名称或密码错误")
             
     @app.route('/register',methods=["POST"])
     def register():
@@ -172,7 +181,9 @@ def create_app(test_config=None):
     def detect_huahen():
         print(request.json)
         path = request.json.get('image_path')
-        info = huahen.single_detect(image_path=path)
+        result = huahen.single_detect(image_path=path)
+        info={}
+        info['huahen']=result
         info['address']=path
         info['youwu'] = -1
         info['angle'] = -1
@@ -190,7 +201,9 @@ def create_app(test_config=None):
     @app.route('/angle', methods=["POST", "GET"])
     def detect_angle():
         path = request.json.get('image_path')
-        info = angle.single_detect(image_path=path)
+        result = angle.single_detect(image_path=path)
+        info={}
+        info['angle']=result
         info['address'] = path
         info['youwu'] = -1
         info['huahen'] = -1
@@ -205,7 +218,9 @@ def create_app(test_config=None):
     @app.route('/circle', methods=["POST", "GET"])
     def detect_circle():
         path = request.json.get('image_path')
-        info = circle.single_detect(image_path=path)
+        res = circle.single_detect(image_path=path)
+        info={}
+        info['circle']=res
         info['address'] = path
         info['youwu'] = -1
         info['angle'] = -1
@@ -220,7 +235,9 @@ def create_app(test_config=None):
     @app.route('/lenth', methods=["POST", "GET"])
     def detect_lenth():
         path = request.json.get('image_path')
-        info = lenth.single_detect(image_path=path)
+        res = lenth.single_detect(image_path=path)
+        info={}
+        info['lenth']=res
         info['address'] = path
         info['youwu'] = -1
         info['angle'] = -1
@@ -231,6 +248,65 @@ def create_app(test_config=None):
         id=dict2sqlite(info,"gongjian")
         info['id'] = id
         return jsonify(info)
+    
+    #批处理
+    @app.route('/BatchProcessing', methods=["POST"])
+    def Process_Pic():
+        # 用POST方式获取JSON数据
+        get_data = request.get_json()
+        # 获取文件夹地址
+        folder_path=get_data.get("folder_path")
+
+        # 初始化一个列表存储图片文件名
+        image_path=[]
+
+        # 检查文件夹路径是否存在
+        if folder_path and os.path.isdir(folder_path):
+            # 遍历文件夹中的文件
+            for filename in os.listdir(folder_path):
+                # 简单通过文件扩展名判断是否是图片文件
+                if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                    # image_path.append(filename)
+
+                    # 或者添加的是文件的绝对地址
+                    file_path = os.path.join(folder_path, filename)
+                    image_path.append(file_path)
+
+        else:
+            return jsonify({"msg": "地址不正确"})
+
+
+        #逐个遍历image_path中的图片路径，并作出对应的操作
+        i=1
+        for path in image_path:
+            # 根据要检测的功能，逐个对图片的路径path进行操作
+            print(path)
+            if i==1:
+                reshuahen=huahen.single_detect(image_path=path)
+            elif i==2:
+                resangle=angle.single_detect(image_path=path)
+            elif i==3:
+                rescircle=circle.single_detect(image_path=path)
+            elif i==4:
+                reslenth=lenth.single_detect(image_path=path)
+            i+=1
+        info={}
+        info['huahen']=reshuahen
+        info['address']=folder_path
+        info['youwu'] = reshuahen
+        info['angle'] = resangle
+        info['circle'] = rescircle
+        info['lenth'] = reslenth
+        info['hege'] = -1
+        if not(reshuahen==0 and (45 in resangle) and rescircle==4 and reslenth==100):
+            info['hege'] = -1
+        else:
+            info['hege'] = 1
+        info['created']=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        id=dict2sqlite(info,"gongjian")
+        info['id'] = id
+        return jsonify(info)
+
     
     # @app.route('/getinfo', methods=["POST", "GET"])
     # def getinfo():

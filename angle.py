@@ -39,6 +39,7 @@ class Angle:
                     self.angles.append(angle)
         # 返回检测到的角度
 
-        return {
-                "angle": self.angles
-            }
+        # return {
+        #         "angle": self.angles
+        #     }
+        return self.angles
