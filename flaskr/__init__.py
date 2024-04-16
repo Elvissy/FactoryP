@@ -49,7 +49,7 @@ def create_app(test_config=None):
         pass
     
     # 将字典数据导入数据库中：file需要存入数据库的字典，table是需要存入数据库的表格，数据库默认存入
-    def dict2sqlite(file,table):
+    def dict2sqlite(file,table,colsed):
         connection=db.get_db()
         # 建立数据库及数据表person
         # conn = sqlite3.connect('data.db')
@@ -82,7 +82,8 @@ def create_app(test_config=None):
         # 提交数据库更改
         connection.commit()
         # 关闭数据库连接
-        connection.close()
+        if colsed:
+            connection.close()
         return id
 
     # a simple page that says hello
@@ -193,7 +194,7 @@ def create_app(test_config=None):
         info['created']=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         # connection=db.get_db()
         # query="INSERT INTO gongjian (huahen,youwu,angle,circle,lenth,address,create,hege) values{}"
-        id=dict2sqlite(info,"gongjian")
+        id=dict2sqlite(info,"gongjian",True)
         info['id'] = id
         # print(info,type(info))
         return jsonify(info)
@@ -211,7 +212,7 @@ def create_app(test_config=None):
         info['lenth'] = -1
         info['hege'] = -1
         info['created'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-        id=dict2sqlite(info,"gongjian")
+        id=dict2sqlite(info,"gongjian",True)
         info['id'] = id
         return jsonify(info)
 
@@ -228,7 +229,7 @@ def create_app(test_config=None):
         info['lenth'] = -1
         info['hege'] = -1
         info['created'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-        id=dict2sqlite(info,"gongjian")
+        id=dict2sqlite(info,"gongjian",True)
         info['id'] = id
         return jsonify(info)
 
@@ -245,12 +246,40 @@ def create_app(test_config=None):
         info['huahen'] = -1
         info['hege'] = -1
         info['created'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-        id=dict2sqlite(info,"gongjian")
+        id=dict2sqlite(info,"gongjian",True)
         info['id'] = id
         return jsonify(info)
     
+    #逐个遍历image_path中的图片路径，并作出对应的操作
+    def iteratePic(image_path):
+        i=1
+        for path in image_path:
+            # 根据要检测的功能，逐个对图片的路径path进行操作
+            if i==1:
+                reshuahen=huahen.single_detect(image_path=path)
+            elif i==2:
+                resangle=angle.single_detect(image_path=path)
+            elif i==3:
+                rescircle=circle.single_detect(image_path=path)
+            elif i==4:
+                reslenth=lenth.single_detect(image_path=path)
+            i+=1
+        info={}
+        info['huahen']=reshuahen
+        info['youwu'] = reshuahen
+        info['angle'] = resangle
+        info['circle'] = rescircle
+        info['lenth'] = reslenth
+        info['hege'] = -1
+        if not(reshuahen==0 and (45 in resangle) and rescircle==4 and reslenth==100):
+            info['hege'] = -1
+        else:
+            info['hege'] = 1
+        info['created']=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        return info
+
     #批处理
-    @app.route('/BatchProcessing', methods=["POST"])
+    @app.route('/BatchProcessingPic', methods=["POST"])
     def Process_Pic():
         # 用POST方式获取JSON数据
         get_data = request.get_json()
@@ -274,39 +303,68 @@ def create_app(test_config=None):
 
         else:
             return jsonify({"msg": "地址不正确"})
+        
 
-
-        #逐个遍历image_path中的图片路径，并作出对应的操作
-        i=1
-        for path in image_path:
-            # 根据要检测的功能，逐个对图片的路径path进行操作
-            print(path)
-            if i==1:
-                reshuahen=huahen.single_detect(image_path=path)
-            elif i==2:
-                resangle=angle.single_detect(image_path=path)
-            elif i==3:
-                rescircle=circle.single_detect(image_path=path)
-            elif i==4:
-                reslenth=lenth.single_detect(image_path=path)
-            i+=1
-        info={}
-        info['huahen']=reshuahen
+        info=iteratePic(image_path)
         info['address']=folder_path
-        info['youwu'] = reshuahen
-        info['angle'] = resangle
-        info['circle'] = rescircle
-        info['lenth'] = reslenth
-        info['hege'] = -1
-        if not(reshuahen==0 and (45 in resangle) and rescircle==4 and reslenth==100):
-            info['hege'] = -1
-        else:
-            info['hege'] = 1
-        info['created']=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-        id=dict2sqlite(info,"gongjian")
+        id=dict2sqlite(info,"gongjian",True)
         info['id'] = id
         return jsonify(info)
 
+
+    #批处理(一次处理多个工件)
+    @app.route('/BatchProcessing', methods=["POST"])
+    def Process_Folder():
+        # 用POST方式获取JSON数据
+        get_data = request.get_json()
+        # 获取文件夹地址
+        folder_path=get_data.get("folder_path")
+
+        # 初始化一个列表存储图片文件名
+        image_path=[]
+
+        # 初始化一个列表存储子文件夹名
+        folders_path=[]
+
+        # 初始化一个列表存储检测结果
+        res=[]
+
+        # 检查文件夹路径是否存在
+        if folder_path and os.path.isdir(folder_path):
+            # 遍历父文件夹中的文件子文件夹
+            for foldersname in os.listdir(folder_path):
+                folderpath=os.path.join(folder_path, foldersname)
+                folders_path.append(folderpath)
+
+            times=1 # 记录此时是第几个工件，当遍历到最后一个工件时，将数据库连接关闭
+            close=False
+            path_lenth=len(folders_path)
+
+            for path in folders_path:
+                # 遍历子文件夹中的文件
+                print(path)
+                for filename in os.listdir(path):
+                    # 简单通过文件扩展名判断是否是图片文件
+                    if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                        # image_path.append(filename)
+
+                        # 或者添加的是文件的绝对地址
+                        file_path = os.path.join(path, filename)
+                        image_path.append(file_path)
+                info=iteratePic(image_path)
+                info['address']=path
+                if times==path_lenth:
+                    close=True
+                id=dict2sqlite(info,"gongjian",close)
+                info['id'] = id
+                times+=1
+                res.append(info)
+
+        else:
+            return jsonify({"msg": "地址不正确"})
+        
+        return jsonify(res)
+    
     
     # @app.route('/getinfo', methods=["POST", "GET"])
     # def getinfo():
