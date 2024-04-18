@@ -189,6 +189,22 @@ def create_app(test_config=None):
                 return jsonify(msg="增加用户成功")
                 # return redirect(url_for('login')) #或者直接重定向到登录页面
 
+    @app.route('/getsession',methods=["POST"])
+    def getsession():
+        # 检查'status'是否在session中
+        if 'status' in session:
+            # 如果存在，返回status的值
+            username=session.get('username')
+            status=session.get('status')
+            # 或者使用session['username']方法获取值
+            # print("get_status:" + str(session['username']))
+
+            return jsonify(username=username,status=status)
+        else:
+            # 如果不存在，返回错误信息
+            return jsonify(username=None,status=None)
+
+    
     @app.route('/huahen', methods=["POST", "GET"])
     def detect_huahen():
         print(request.json)
