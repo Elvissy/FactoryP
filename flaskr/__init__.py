@@ -203,6 +203,55 @@ def create_app(test_config=None):
         else:
             # 如果不存在，返回错误信息
             return jsonify(username=None,status=None)
+        
+    @app.route('/getUserMsg',methods=["POST"])
+    def getUserMsg():
+        # 用POST方式获取JSON数据
+        get_data = request.get_json()
+        #获取数据
+        username=get_data.get("username")
+
+        #链接数据库查询
+        with db.get_db() as conn:
+            cur = conn.cursor()
+
+            #查询是否存在该用户
+            cur.execute("SELECT * FROM users WHERE username=?", (username,))
+            user_records = cur.fetchall() # 查询结果的元组
+            # count = result[0]  # 获取元组值
+            # print(user_records)
+
+            if user_records:
+                user = user_records[0]
+                id=user[0]
+                username=user[1]
+                phone=user[3]
+                status=user[4]
+                return jsonify(id=id,username=username,phone=phone,status=status)
+            else:
+                return jsonify({'msg': '不存在该用户'})
+
+
+    @app.route('/setUserMsg',methods=["POST"])
+    def setUserMsg():
+        # 用POST方式获取JSON数据
+        get_data = request.get_json()
+        #获取数据
+        id = get_data.get("id")
+        username = get_data.get("username")
+        phone = get_data.get("phone")
+        status = get_data.get("status")
+
+        with db.get_db() as conn:
+            cur = conn.cursor()
+            # 更新数据库
+            cur.execute("UPDATE users SET username = ?, phone = ?, status = ? WHERE id = ?", (username, phone, status, id))
+            conn.commit()
+            if cur.rowcount == 0:
+                return jsonify({'msg': '不存在该用户'})
+            else:
+                return jsonify({'msg': '修改成功'})
+
 
     
     @app.route('/huahen', methods=["POST", "GET"])
