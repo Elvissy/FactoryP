@@ -24,11 +24,11 @@ class Huahen:
         #二值化
         ignore, img_bin = cv.threshold(imgclip, 110, 255, cv.THRESH_BINARY)
 
-        print(img_bin.dtype)
+        # print(img_bin.dtype)
         # 查找轮廓
         contours, hierarchy = cv.findContours(img_bin.astype(np.uint8), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
         # 输出轮廓个数
-        print(len(contours))
+        # print(len(contours))
         for i in range(0, len(contours)):
             length = cv.arcLength(contours[i], True)
             # print(length)

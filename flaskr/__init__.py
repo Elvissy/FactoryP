@@ -341,7 +341,7 @@ def create_app(test_config=None):
                             info['hege']=0
                     elif pername==2 and get_data.get("angleSwitch"):
                         info['angle']=angle.single_detect(image_path=file_path)
-                        if not (info['angle']==param['angleParam']+param['angleError'] or info['angle']==param['angleParam']-param['angleError']):
+                        if info['angle']>param['angleParam']+param['angleError'] or info['angle']<param['angleParam']-param['angleError']:
                             info['hege']=0
                     elif pername==3 and get_data.get("circlesSwitch"):
                         info['circle']=circle.single_detect(image_path=file_path)
@@ -349,7 +349,7 @@ def create_app(test_config=None):
                             info['hege']=0
                     elif pername==4 and get_data.get("lengthSwitch"):
                         info['lenth']=lenth.single_detect(image_path=file_path)
-                        if not (info['lenth']==param['length']+param['lengthError'] or info['lenth']==param['length']-param['lengthError']):
+                        if info['lenth']>param['length']+param['lengthError'] or info['lenth']<param['length']-param['lengthError']:
                             info['hege']=0
 
         else:
@@ -376,14 +376,23 @@ def create_app(test_config=None):
         param['circles']=get_data.get("circles")
         param['angleParam']=get_data.get("angleParam")
         param['angleError']=get_data.get("angleError")
-        isChanged=get_data.get("isChanged")
-        if isChanged:
+        # isChanged=get_data.get("isChanged")
+        # if isChanged:
+        #     id_param=dict2sqlite(param,"StandardParameters",False)
+        # else:
+        #     connection=db.get_db()
+        #     cur = connection.cursor()
+        #     cur.execute("SELECT standardid FROM StandardParameters WHERE length=? AND lengthError=? AND circles=? AND angleParam=? AND angleError=?", (param['length'], param['lengthError'],param['circles'],param['angleParam'],param['angleError']))
+        #     id_param = cur.fetchone()[0]
+
+        connection=db.get_db()
+        cur = connection.cursor()
+        cur.execute("SELECT standardid FROM StandardParameters WHERE length=? AND lengthError=? AND circles=? AND angleParam=? AND angleError=?", (param['length'], param['lengthError'],param['circles'],param['angleParam'],param['angleError']))
+        param_data=cur.fetchone()
+        if param_data==None:
             id_param=dict2sqlite(param,"StandardParameters",False)
         else:
-            connection=db.get_db()
-            cur = connection.cursor()
-            cur.execute("SELECT standardid FROM StandardParameters WHERE length=? AND lengthError=? AND circles=? AND angleParam=? AND angleError=?", (param['length'], param['lengthError'],param['circles'],param['angleParam'],param['angleError']))
-            id_param = cur.fetchone()[0]
+            id_param = param_data[0]
 
         # 获取文件夹地址
         folder_path=get_data.get("folder_path")
@@ -432,7 +441,7 @@ def create_app(test_config=None):
                                 info['hege']=0
                         elif pername==2 and get_data.get("angleSwitch"):
                             info['angle']=angle.single_detect(image_path=file_path)
-                            if not (info['angle']==param['angleParam']+param['angleError'] or info['angle']==param['angleParam']-param['angleError']):
+                            if (info['angle'][0]) > (param['angleParam']+param['angleError']) or (info['angle'][0]) < (param['angleParam']-param['angleError']):
                                 info['hege']=0
                         elif pername==3 and get_data.get("circlesSwitch"):
                             info['circle']=circle.single_detect(image_path=file_path)
@@ -440,7 +449,7 @@ def create_app(test_config=None):
                                 info['hege']=0
                         elif pername==4 and get_data.get("lengthSwitch"):
                             info['lenth']=lenth.single_detect(image_path=file_path)
-                            if not (info['lenth']==param['length']+param['lengthError'] or info['lenth']==param['length']-param['lengthError']):
+                            if (info['lenth']) > (param['length']+param['lengthError']) or (info['lenth']) < (param['length']-param['lengthError']):
                                 info['hege']=0
                 info['address']=path
                 if times==path_lenth:
