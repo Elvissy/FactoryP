@@ -10,7 +10,7 @@ CREATE TABLE gongjian (
   circle INTEGER NOT NULL,
   lenth FLOAT NOT NULL,
   hege INTEGER NOT NULL,
-  address TEXT UNIQUE NOT NULL,
+  address TEXT NOT NULL,
   created datetime NOT NULL,
   standardid INTEGER,
   FOREIGN KEY (standardid) REFERENCES StandardParameters(standardid)
@@ -28,7 +28,7 @@ CREATE TABLE StandardParameters(
 
 CREATE TABLE users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT NOT NULL,
+  username TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL,
   phone char(11) NOT NULL,
   status INTEGER NOT NULL DEFAULT 0,
