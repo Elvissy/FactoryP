@@ -8,6 +8,7 @@
 
 
 import os
+import sqlite3
 import time
 
 from flask import Flask, jsonify, render_template, session
@@ -203,31 +204,51 @@ def create_app(test_config=None):
         else:
             # 如果不存在，返回错误信息
             return jsonify(username=None,status=None)
-        
-    @app.route('/getUserMsg',methods=["POST"])
-    def getUserMsg():
-        # 用POST方式获取JSON数据
-        get_data = request.get_json()
-        #获取数据
-        username=get_data.get("username")
 
-        #链接数据库查询
+    @app.route('/getAllUsers', methods=["POST"])
+    def getAllUsers():
         with db.get_db() as conn:
             cur = conn.cursor()
 
-            #查询是否存在该用户
+            # 查询是否存在该用户
+            cur.execute("SELECT id,username,phone,status FROM users")
+            users = cur.fetchall()  # 查询结果的元组
+            print(users)
+            # 创建JSON结构
+            json_data = [{
+                "id": user[0],
+                "username": user[1],
+                "phone": user[2],
+                "status": user[3]
+            } for user in users]
+            return jsonify({'users': json_data})
+
+    # getUserMsg改为getUserByName
+    @app.route('/getUserByName', methods=["POST"])
+    def getUserMsg():
+        # 用POST方式获取JSON数据
+        get_data = request.get_json()
+        # 获取数据
+        username = get_data.get("username")
+
+        # 链接数据库查询
+        conn = db.get_db()
+        with db.get_db() as conn:
+            cur = conn.cursor()
+
+            # 查询是否存在该用户
             cur.execute("SELECT * FROM users WHERE username=?", (username,))
-            user_records = cur.fetchall() # 查询结果的元组
+            user_records = cur.fetchall()  # 查询结果的元组
             # count = result[0]  # 获取元组值
             # print(user_records)
 
             if user_records:
                 user = user_records[0]
-                id=user[0]
-                username=user[1]
-                phone=user[3]
-                status=user[4]
-                return jsonify(id=id,username=username,phone=phone,status=status)
+                id = user[0]
+                username = user[1]
+                phone = user[3]
+                status = user[4]
+                return jsonify(id=id, username=username, phone=phone, status=status)
             else:
                 return jsonify({'msg': '不存在该用户'})
 
@@ -391,6 +412,7 @@ def create_app(test_config=None):
         # 检查文件夹路径是否存在
         if folder_path and os.path.isdir(folder_path):
             # 遍历文件夹中的文件
+            os.listdir(folder_path).sort(key=lambda x: int(x[0:-4]))
             for filename in os.listdir(folder_path):
                 # 简单通过文件扩展名判断是否是图片文件
                 if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
@@ -405,7 +427,7 @@ def create_app(test_config=None):
                         if info['huahen']==1:
                             info['hege']=0
                     elif pername==2 and get_data.get("angleSwitch"):
-                        info['angle']=angle.single_detect(image_path=file_path)
+                        info['angle'] = angle.single_detect(image_path=file_path)
                         if info['angle']>param['angleParam']+param['angleError'] or info['angle']<param['angleParam']-param['angleError']:
                             info['hege']=0
                     elif pername==3 and get_data.get("circlesSwitch"):
