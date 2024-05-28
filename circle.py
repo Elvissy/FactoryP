@@ -23,9 +23,9 @@ class Circle:
             dilated_edges,
             cv2.HOUGH_GRADIENT_ALT,
             dp=1,
-            minDist=28,
-            param1=50,
-            param2=0.8,
+            minDist=30,
+            param1=30,
+            param2=0.6,
             minRadius=0,
             maxRadius=0
         )

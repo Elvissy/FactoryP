@@ -85,8 +85,9 @@ class Lenth:
             dB = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
 
             # 初始化测量指标值，参考物体在图片中的宽度已经通过欧氏距离计算得到，参考物体的实际大小已知
-            if pixelsPerMetric is None:
-                pixelsPerMetric = dB / self.width
+            # if pixelsPerMetric is None:
+            #     pixelsPerMetric = dB / self.width
+            pixelsPerMetric = 0.00000000000000000000000023451564
 
             # 计算目标的实际大小（宽和高），用英尺来表示
             dimA = dA / pixelsPerMetric

@@ -24,14 +24,17 @@
     <last-used-providers />
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
-    <open-files>
-      <object connection-id="b9a889d0-72fd-4528-908e-a0f89de09274" object-ref="schemas/flaskr/tables/gongjian" />
-    </open-files>
+    <open-files />
   </component>
   <component name="DBNavigator.Project.DatabaseSessionManager">
     <connection id="b9a889d0-72fd-4528-908e-a0f89de09274" />
   </component>
   <component name="DBNavigator.Project.DatasetFilterManager">
+    <filter-actions connection-id="b9a889d0-72fd-4528-908e-a0f89de09274" dataset="flaskr.StandardParameters" active-filter-id="1df581b7-96a2-4b85-bb83-dc30e96ca735">
+      <filter id="1df581b7-96a2-4b85-bb83-dc30e96ca735" name="Filter 1" temporary="false" custom-name="false" type="basic" join-type="AND">
+        <condition column="standardid" operator="=" value="" active="true" />
+      </filter>
+    </filter-actions>
     <filter-actions connection-id="b9a889d0-72fd-4528-908e-a0f89de09274" dataset="flaskr.gongjian" active-filter-id="EMPTY_FILTER">
       <filter id="ad1ee772-80ef-48c4-ab9d-f3dc08921219" name="Filter 1" temporary="false" custom-name="false" type="basic" join-type="AND">
         <condition column="id_g" operator="=" value="" active="true" />

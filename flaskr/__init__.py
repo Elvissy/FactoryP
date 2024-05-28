@@ -205,15 +205,92 @@ def create_app(test_config=None):
             # 如果不存在，返回错误信息
             return jsonify(username=None,status=None)
 
+    # @app.route('/getAllUsers', methods=["POST"])
+    # def getAllUsers():
+    #     with db.get_db() as conn:
+    #         cur = conn.cursor()
+    #
+    #         # 查询是否存在该用户
+    #         cur.execute("SELECT id,username,phone,status FROM users")
+    #         users = cur.fetchall()  # 查询结果的元组
+    #         print(users)
+    #         # 创建JSON结构
+    #         json_data = [{
+    #             "id": user[0],
+    #             "username": user[1],
+    #             "phone": user[2],
+    #             "status": user[3]
+    #         } for user in users]
+    #         return jsonify({'users': json_data})
     @app.route('/getAllUsers', methods=["POST"])
     def getAllUsers():
+
+        get_data = request.get_json()
+
+        param = {}
+        param['username'] = get_data.get("username")
+        param['status'] = get_data.get("status")
+        param['number'] = get_data.get("number")
+
+        if param['username'] == '':
+            if param['number'] == '':
+                if param['status'] == '':
+                    query = "SELECT id,username,phone,status FROM users"
+                elif param['status'] == '0':
+                    query = "SELECT id,username,phone,status FROM users where status=0"
+                elif param['status'] == '1':
+                    query = "SELECT id,username,phone,status FROM users where status=1"
+                elif param['status'] == '2':
+                    query = "SELECT id,username,phone,status FROM users where status=2"
+            else:
+                if param['status'] == '':
+                    query = "SELECT id,username,phone,status FROM users where phone='{0}'".format(param['number'])
+                elif param['status'] == '0':
+                    query = "SELECT id,username,phone,status FROM users where status=0 and phone='{0}'".format(
+                        param['number'])
+                elif param['status'] == '1':
+                    query = "SELECT id,username,phone,status FROM users where status=1 and phone='{0}'".format(
+                        param['number'])
+                elif param['status'] == '2':
+                    query = "SELECT id,username,phone,status FROM users where status=2 and phone='{0}'".format(
+                        param['number'])
+        else:
+            if param['number'] == '':
+                if param['status'] == '':
+                    query = "SELECT id,username,phone,status FROM users where username='{0}'".format(
+                        param['username'])
+                elif param['status'] == '0':
+                    query = "SELECT id,username,phone,status FROM users where status=0 and username='{0}'".format(
+                        param['username'])
+                elif param['status'] == '1':
+                    query = "SELECT id,username,phone,status FROM users where status=1 and username='{0}'".format(
+                        param['username'])
+                elif param['status'] == '2':
+                    query = "SELECT id,username,phone,status FROM users where status=2 and username='{0}'".format(
+                        param['username'])
+            else:
+                if param['status'] == '':
+                    query = "SELECT id,username,phone,status FROM users where phone='{0}' and username='{1}'".format(
+                        param['number'], param['username'])
+                elif param['status'] == '0':
+                    query = "SELECT id,username,phone,status FROM users where status=0 and phone='{0}' and username='{1}'".format(
+                        param['number'], param['username'])
+                elif param['status'] == '1':
+                    query = "SELECT id,username,phone,status FROM users where status=1 and phone='{0}' and username='{1}'".format(
+                        param['number'], param['username'])
+                elif param['status'] == '2':
+                    query = "SELECT id,username,phone,status FROM users where status=2 and phone='{0}' and username='{1}'".format(
+                        param['number'], param['username'])
+
+        print(query)
+
         with db.get_db() as conn:
             cur = conn.cursor()
 
             # 查询是否存在该用户
-            cur.execute("SELECT id,username,phone,status FROM users")
+            cur.execute(query)
             users = cur.fetchall()  # 查询结果的元组
-            print(users)
+            # print(users)
             # 创建JSON结构
             json_data = [{
                 "id": user[0],
@@ -376,76 +453,179 @@ def create_app(test_config=None):
         return info
     
     #批处理
+    # @app.route('/BatchProcessingPic', methods=["POST"])
+    # def Process_Pic():
+    #     # 用POST方式获取JSON数据
+    #     get_data = request.get_json()
+    #     #判断标准参数是否改动，若改动则添加到数据库中
+    #     param={}
+    #     param['length']=get_data.get("length")
+    #     param['lengthError']=get_data.get("lengthError")
+    #     param['circles']=get_data.get("circles")
+    #     param['angleParam']=get_data.get("angleParam")
+    #     param['angleError']=get_data.get("angleError")
+    #     isChanged=get_data.get("isChanged")
+    #     if isChanged:
+    #         id_param=dict2sqlite(param,"StandardParameters",False)
+    #     else:
+    #         connection=db.get_db()
+    #         cur = connection.cursor()
+    #         cur.execute("SELECT standardid FROM StandardParameters WHERE length=? AND lengthError=? AND circles=? AND angleParam=? AND angleError=?", (param['length'], param['lengthError'],param['circles'],param['angleParam'],param['angleError']))
+    #         id_param = cur.fetchone()[0]
+    #     # 获取文件夹地址
+    #     folder_path=get_data.get("folder_path")
+    #
+    #     # 初始化一个列表存储图片文件名
+    #     image_path=[]
+    #
+    #     # 检测结果
+    #     info={}
+    #     info['huahen']=-1
+    #     info['angle'] = -1
+    #     info['circle'] = -1
+    #     info['lenth'] = -1
+    #     info['hege'] = 1
+    #
+    #     # 检查文件夹路径是否存在
+    #     if folder_path and os.path.isdir(folder_path):
+    #         # 遍历文件夹中的文件
+    #         os.listdir(folder_path).sort(key=lambda x: int(x[0:-4]))
+    #         for filename in os.listdir(folder_path):
+    #             # 简单通过文件扩展名判断是否是图片文件
+    #             if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+    #                 # image_path.append(filename)
+    #
+    #                 # 或者添加的是文件的绝对地址
+    #                 file_path = os.path.join(folder_path, filename)
+    #                 # image_path.append(file_path)
+    #                 pername=int(filename.split('.')[0])
+    #                 if pername==1 and get_data.get("scratchSwitch"):
+    #                     info['huahen']=huahen.single_detect(image_path=file_path)
+    #                     if info['huahen']==1:
+    #                         info['hege']=0
+    #                 elif pername==2 and get_data.get("angleSwitch"):
+    #                     info['angle'] = angle.single_detect(image_path=file_path)
+    #                     if info['angle']>param['angleParam']+param['angleError'] or info['angle']<param['angleParam']-param['angleError']:
+    #                         info['hege']=0
+    #                 elif pername==3 and get_data.get("circlesSwitch"):
+    #                     info['circle']=circle.single_detect(image_path=file_path)
+    #                     if info['circle']!=param['circles']:
+    #                         info['hege']=0
+    #                 elif pername==4 and get_data.get("lengthSwitch"):
+    #                     info['lenth']=lenth.single_detect(image_path=file_path)
+    #                     if info['lenth']>param['length']+param['lengthError'] or info['lenth']<param['length']-param['lengthError']:
+    #                         info['hege']=0
+    #
+    #     else:
+    #         return jsonify({"msg": "地址不正确"})
+    #
+    #     info['address']=folder_path
+    #     info['standardid']=id_param
+    #     info['created']=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+    #     id=dict2sqlite(info,"gongjian",True)
+    #     info['id'] = id
+    #     return jsonify(info)
     @app.route('/BatchProcessingPic', methods=["POST"])
     def Process_Pic():
         # 用POST方式获取JSON数据
         get_data = request.get_json()
-        #判断标准参数是否改动，若改动则添加到数据库中
-        param={}
-        param['length']=get_data.get("length")
-        param['lengthError']=get_data.get("lengthError")
-        param['circles']=get_data.get("circles")
-        param['angleParam']=get_data.get("angleParam")
-        param['angleError']=get_data.get("angleError")
-        isChanged=get_data.get("isChanged")
-        if isChanged:
-            id_param=dict2sqlite(param,"StandardParameters",False)
+        # 判断标准参数是否改动，若改动则添加到数据库中
+        param = {}
+        param['length'] = get_data.get("length")
+        param['lengthError'] = get_data.get("lengthError")
+        param['circles'] = get_data.get("circles")
+        param['angleParam'] = get_data.get("angleParam")
+        param['angleError'] = get_data.get("angleError")
+        # isChanged=get_data.get("isChanged")
+        connection = db.get_db()
+        cur = connection.cursor()
+        cur.execute(
+            "SELECT standardid FROM StandardParameters WHERE length=? AND lengthError=? AND circles=? AND angleParam=? AND angleError=?",
+            (param['length'], param['lengthError'], param['circles'], param['angleParam'], param['angleError']))
+        param_data = cur.fetchone()
+        if param_data == None:
+            id_param = dict2sqlite(param, "StandardParameters", False)
         else:
-            connection=db.get_db()
-            cur = connection.cursor()
-            cur.execute("SELECT standardid FROM StandardParameters WHERE length=? AND lengthError=? AND circles=? AND angleParam=? AND angleError=?", (param['length'], param['lengthError'],param['circles'],param['angleParam'],param['angleError']))
-            id_param = cur.fetchone()[0]
-        # 获取文件夹地址
-        folder_path=get_data.get("folder_path")
+            id_param = param_data[0]
 
-        # 初始化一个列表存储图片文件名
-        image_path=[]
+        # 获取文件夹地址
+        number = get_data.get("number") * 4 + 1
 
         # 检测结果
-        info={}
-        info['huahen']=-1
+        info = {}
+        info['huahen'] = -1
         info['angle'] = -1
         info['circle'] = -1
         info['lenth'] = -1
         info['hege'] = 1
 
+        # 初始化一个列表存储图片文件名
+        folders_path = []
+
+        # 使用固定绝对地址
+        base_path = os.path.join(os.getcwd(), 'data')
         # 检查文件夹路径是否存在
-        if folder_path and os.path.isdir(folder_path):
-            # 遍历文件夹中的文件
-            os.listdir(folder_path).sort(key=lambda x: int(x[0:-4]))
-            for filename in os.listdir(folder_path):
-                # 简单通过文件扩展名判断是否是图片文件
-                if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
-                    # image_path.append(filename)
-
-                    # 或者添加的是文件的绝对地址
-                    file_path = os.path.join(folder_path, filename)
-                    # image_path.append(file_path)
-                    pername=int(filename.split('.')[0])
-                    if pername==1 and get_data.get("scratchSwitch"):
-                        info['huahen']=huahen.single_detect(image_path=file_path)
-                        if info['huahen']==1:
-                            info['hege']=0
-                    elif pername==2 and get_data.get("angleSwitch"):
-                        info['angle'] = angle.single_detect(image_path=file_path)
-                        if info['angle']>param['angleParam']+param['angleError'] or info['angle']<param['angleParam']-param['angleError']:
-                            info['hege']=0
-                    elif pername==3 and get_data.get("circlesSwitch"):
-                        info['circle']=circle.single_detect(image_path=file_path)
-                        if info['circle']!=param['circles']:
-                            info['hege']=0
-                    elif pername==4 and get_data.get("lengthSwitch"):
-                        info['lenth']=lenth.single_detect(image_path=file_path)
-                        if info['lenth']>param['length']+param['lengthError'] or info['lenth']<param['length']-param['lengthError']:
-                            info['hege']=0
-
+        if base_path and os.path.isdir(base_path):
+            # 遍历父文件夹中的文件子文件夹
+            for foldersname in os.listdir(base_path):
+                folderpath = os.path.join(base_path, foldersname)
+                folders_path.append(folderpath)
         else:
             return jsonify({"msg": "地址不正确"})
-        
-        info['address']=folder_path
-        info['standardid']=id_param
-        info['created']=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-        id=dict2sqlite(info,"gongjian",True)
+
+        # 检测角度
+        if get_data.get("angleSwitch"):
+            angles = []
+            angle_path1 = base_path + "\\1\\" + f"{number}.bmp"
+            angle_path2 = base_path + "\\7\\" + f"{number}.bmp"
+            angle1 = angle.single_detect(image_path=angle_path1)
+            angle2 = angle.single_detect(image_path=angle_path2)
+            if angle1 > param['angleParam'] + param['angleError'] or angle1 < param['angleParam'] - \
+                    param['angleError']:
+                info['hege'] = 0
+            if angle2 > param['angleParam'] + param['angleError'] or angle2 < param['angleParam'] - \
+                    param['angleError']:
+                info['hege'] = 0
+            angles.append(angle1)
+            angles.append(angle2)
+            info['angle'] = angles
+
+        # 检测宽度
+        if get_data.get("lengthSwitch"):
+            length_path = base_path + "\\1\\" + f"{number}.bmp"
+            info['lenth'] = lenth.single_detect(image_path=length_path)
+            if (info['lenth']) > (param['length'] + param['lengthError']) or (info['lenth']) < (
+                    param['length'] - param['lengthError']):
+                info['hege'] = 0
+
+        # 检测划痕，圆孔
+        if get_data.get("scratchSwitch") or get_data.get("circlesSwitch"):
+            scratch = 0
+            circles = 0
+            for forder in folders_path:
+                for i in range(4):
+                    pic_path = forder + f"\\{number + i}.bmp"
+                    # print(pic_path)
+                    # print("--------------------------------------------"+str(circle.single_detect(image_path=pic_path)))
+                    c = circle.single_detect(image_path=pic_path)
+                    s = huahen.single_detect(image_path=pic_path)
+                    circles += c
+                    scratch += s
+
+
+            if scratch > 0:
+                info['huahen'] = 1
+            info['circle'] = circles
+
+            if get_data.get("scratchSwitch") and scratch > 0:
+                info['hege'] = 0
+            if get_data.get("circlesSwitch") and circles != param['circles']:
+                info['hege'] = 0
+
+        info['address'] = base_path
+        info['standardid'] = id_param
+        info['created'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        id = dict2sqlite(info, "gongjian", True)
         info['id'] = id
         return jsonify(info)
 
@@ -563,28 +743,110 @@ def create_app(test_config=None):
     #     print(result)
     #     return '1'
     
+    # @app.route('/getAll', methods=["POST", "GET"])
+    # def getAll():
+    #     connection=db.get_db()
+    #     cursor=connection.cursor()
+    #     query="SELECT * FROM gongjian"
+    #     cursor.execute(query)
+    #     # print(query)
+    #     # query_db(query)
+    #     # 获取查询结果并转化为字典
+    #     print("-------",cursor.description)
+    #     columns = [column[0] for column in cursor.description]
+    #     print(columns)
+    #     result = []
+    #     for row in cursor.fetchall():
+    #         detectRes=dict(zip(columns, row))
+    #         paramId=detectRes['standardid']
+    #         # query="SELECT * FROM StandardParameters WHERE standardid=?", (paramId, )
+    #         cursor.execute("SELECT * FROM StandardParameters WHERE standardid=?", (paramId, ))
+    #         columnsParam = [column[0] for column in cursor.description]
+    #         param=cursor.fetchone()
+    #         paramRes=dict(zip(columnsParam, param))
+    #         res=dict(detectRes,**paramRes)
+    #         result.append(res)
+    #     # 打印结果
+    #     # for row in result:
+    #     #     print(row)
+    #     # print(type(result))
+    #     return result
     @app.route('/getAll', methods=["POST", "GET"])
     def getAll():
-        connection=db.get_db()
-        cursor=connection.cursor()
-        query="SELECT * FROM gongjian"
+        get_data = request.get_json()
+
+        param = {}
+        param['id'] = get_data.get("id")
+        param['file'] = get_data.get("file")
+        param['status'] = get_data.get("status")
+        param['date'] = get_data.get("date")
+        if param['id'] == '':
+            if param['file'] == '':
+                if param['status'] == '':
+                    if param['date'] == ';':
+                        query = "SELECT * FROM gongjian"
+                    else:
+                        param['start'] = param['date'].split(';')[0]
+                        param['end'] = param['date'].split(';')[1]
+                        query = "SELECT * FROM gongjian  WHERE created BETWEEN '{0}' and '{1}' ORDER BY id_g DESC".format(
+                            param['start'], param['end'])
+                else:
+                    if param['date'] == '':
+                        query = "SELECT * FROM gongjian where hege='{0}'".format(param['status'])
+                    else:
+                        param['start'] = param['date'].split(';')[0]
+                        param['end'] = param['date'].split(';')[1]
+                        query = "SELECT * FROM gongjian  WHERE hege='{0}' and created BETWEEN '{1}' and '{2}' ORDER BY id_g DESC".format(
+                            param['status'], param['start'], param['end'])
+            else:
+                if param['status'] == '':
+                    if param['date'] == '':
+                        query = "SELECT * FROM gongjian where address='{0}'".format(param['file'])
+                    else:
+                        param['start'] = param['date'].split(';')[0]
+                        param['end'] = param['date'].split(';')[1]
+                        query = "SELECT * FROM gongjian  WHERE address='{0}' and created BETWEEN '{1}' and '{2}' ORDER BY id_g DESC".format(
+                            param['file'], param['start'], param['end'])
+                else:
+                    if param['date'] == '':
+                        query = "SELECT * FROM gongjian where address='{0}' and hege='{1}'".format(param['file'],
+                                                                                                   param['status'])
+                    else:
+                        param['start'] = param['date'].split(';')[0]
+                        param['end'] = param['date'].split(';')[1]
+                        query = "SELECT * FROM gongjian  WHERE address='{0}' and hege='{1}' and created BETWEEN '{2}' and '{3}' ORDER BY id_g DESC".format(
+                            param['file'], param['status'], param['start'], param['end'])
+        else:
+            print(1)
+            query = "SELECT * FROM gongjian where id_g='{0}'".format(param['id'])
+        print(query)
+        connection = db.get_db()
+        cursor = connection.cursor()
+        # if param['all'] == 1 and param['qualify']==0 and param['time']==0:
+        #     query="SELECT * FROM gongjian"
+        # elif param['qualify'] == 1 and param['all']==0 and param['time']==0:
+        #     query="SELECT * FROM gongjian where hege=1"
+        # elif param['qualify'] == 2 and param['all']==0 and param['time']==0:
+        #     query="SELECT * FROM gongjian where hege=0"
+        # elif param['time'] ==1 and param['all']==0 and param['qualify']==0:
+        #     query="SELECT * FROM gongjian WHERE cratedate BETWEEN ? and ? ORDER BY id DESC",(param['start'],param['end'])
+
         cursor.execute(query)
-        # print(query)
         # query_db(query)
         # 获取查询结果并转化为字典
-        print("-------",cursor.description)
+        # print("-------",cursor.description)
         columns = [column[0] for column in cursor.description]
         print(columns)
         result = []
         for row in cursor.fetchall():
-            detectRes=dict(zip(columns, row))
-            paramId=detectRes['standardid']
+            detectRes = dict(zip(columns, row))
+            paramId = detectRes['standardid']
             # query="SELECT * FROM StandardParameters WHERE standardid=?", (paramId, )
-            cursor.execute("SELECT * FROM StandardParameters WHERE standardid=?", (paramId, ))
+            cursor.execute("SELECT * FROM StandardParameters WHERE standardid=?", (paramId,))
             columnsParam = [column[0] for column in cursor.description]
-            param=cursor.fetchone()
-            paramRes=dict(zip(columnsParam, param))
-            res=dict(detectRes,**paramRes)
+            param = cursor.fetchone()
+            paramRes = dict(zip(columnsParam, param))
+            res = dict(detectRes, **paramRes)
             result.append(res)
         # 打印结果
         # for row in result:
