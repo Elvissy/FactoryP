@@ -7,7 +7,7 @@ class Huahen:
     def __init__(self):
         self.qualif=0
 
-    def single_detect(self,image_path):
+    def single_detect(self,image_path,degree):
 
         img=cv.imread(image_path)
 
@@ -28,7 +28,7 @@ class Huahen:
         morph_image = cv.morphologyEx(imgXY2, cv.MORPH_CLOSE, kernel)
 
         #二值化
-        _, binary_image = cv.threshold(morph_image, 80, 255, cv.THRESH_BINARY)
+        _, binary_image = cv.threshold(morph_image, degree, 255, cv.THRESH_BINARY)
 
         # print(img_bin.dtype)
         # 查找轮廓

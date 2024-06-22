@@ -608,7 +608,7 @@ def create_app(test_config=None):
                     # print(pic_path)
                     # print("--------------------------------------------"+str(circle.single_detect(image_path=pic_path)))
                     c = circle.single_detect(image_path=pic_path)
-                    s = huahen.single_detect(image_path=pic_path)
+                    s = huahen.single_detect(image_path=pic_path, degree=get_data.get("degree"))
                     circles += c
                     scratch += s
 
