@@ -87,7 +87,8 @@ class Lenth:
             # 初始化测量指标值，参考物体在图片中的宽度已经通过欧氏距离计算得到，参考物体的实际大小已知
             # if pixelsPerMetric is None:
             #     pixelsPerMetric = dB / self.width
-            pixelsPerMetric = 0.00000000000000000000000023451564
+            pixelsPerMetric = 2.30872137005766
+            pixelsPerMetric = 2.30872137005766 * 50
 
             # 计算目标的实际大小（宽和高），用英尺来表示
             dimA = dA / pixelsPerMetric
@@ -109,3 +110,7 @@ class Lenth:
             #     "lenth": self.lenth
             # }
             return self.lenth
+# if __name__=="__main__":
+#     lenth = Lenth()
+#     length ,width= lenth.single_detect("D:\ProgramFile\Python\FactoryP\data\\1\\1.bmp")
+#     print("该工件的检测长度和宽度分别为："+str(width)+"cm, "+str(length)+"cm")

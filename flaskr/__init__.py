@@ -205,23 +205,6 @@ def create_app(test_config=None):
             # 如果不存在，返回错误信息
             return jsonify(username=None,status=None)
 
-    # @app.route('/getAllUsers', methods=["POST"])
-    # def getAllUsers():
-    #     with db.get_db() as conn:
-    #         cur = conn.cursor()
-    #
-    #         # 查询是否存在该用户
-    #         cur.execute("SELECT id,username,phone,status FROM users")
-    #         users = cur.fetchall()  # 查询结果的元组
-    #         print(users)
-    #         # 创建JSON结构
-    #         json_data = [{
-    #             "id": user[0],
-    #             "username": user[1],
-    #             "phone": user[2],
-    #             "status": user[3]
-    #         } for user in users]
-    #         return jsonify({'users': json_data})
     @app.route('/getAllUsers', methods=["POST"])
     def getAllUsers():
 
@@ -451,80 +434,7 @@ def create_app(test_config=None):
             info['hege'] = 1
         info['created']=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         return info
-    
-    #批处理
-    # @app.route('/BatchProcessingPic', methods=["POST"])
-    # def Process_Pic():
-    #     # 用POST方式获取JSON数据
-    #     get_data = request.get_json()
-    #     #判断标准参数是否改动，若改动则添加到数据库中
-    #     param={}
-    #     param['length']=get_data.get("length")
-    #     param['lengthError']=get_data.get("lengthError")
-    #     param['circles']=get_data.get("circles")
-    #     param['angleParam']=get_data.get("angleParam")
-    #     param['angleError']=get_data.get("angleError")
-    #     isChanged=get_data.get("isChanged")
-    #     if isChanged:
-    #         id_param=dict2sqlite(param,"StandardParameters",False)
-    #     else:
-    #         connection=db.get_db()
-    #         cur = connection.cursor()
-    #         cur.execute("SELECT standardid FROM StandardParameters WHERE length=? AND lengthError=? AND circles=? AND angleParam=? AND angleError=?", (param['length'], param['lengthError'],param['circles'],param['angleParam'],param['angleError']))
-    #         id_param = cur.fetchone()[0]
-    #     # 获取文件夹地址
-    #     folder_path=get_data.get("folder_path")
-    #
-    #     # 初始化一个列表存储图片文件名
-    #     image_path=[]
-    #
-    #     # 检测结果
-    #     info={}
-    #     info['huahen']=-1
-    #     info['angle'] = -1
-    #     info['circle'] = -1
-    #     info['lenth'] = -1
-    #     info['hege'] = 1
-    #
-    #     # 检查文件夹路径是否存在
-    #     if folder_path and os.path.isdir(folder_path):
-    #         # 遍历文件夹中的文件
-    #         os.listdir(folder_path).sort(key=lambda x: int(x[0:-4]))
-    #         for filename in os.listdir(folder_path):
-    #             # 简单通过文件扩展名判断是否是图片文件
-    #             if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
-    #                 # image_path.append(filename)
-    #
-    #                 # 或者添加的是文件的绝对地址
-    #                 file_path = os.path.join(folder_path, filename)
-    #                 # image_path.append(file_path)
-    #                 pername=int(filename.split('.')[0])
-    #                 if pername==1 and get_data.get("scratchSwitch"):
-    #                     info['huahen']=huahen.single_detect(image_path=file_path)
-    #                     if info['huahen']==1:
-    #                         info['hege']=0
-    #                 elif pername==2 and get_data.get("angleSwitch"):
-    #                     info['angle'] = angle.single_detect(image_path=file_path)
-    #                     if info['angle']>param['angleParam']+param['angleError'] or info['angle']<param['angleParam']-param['angleError']:
-    #                         info['hege']=0
-    #                 elif pername==3 and get_data.get("circlesSwitch"):
-    #                     info['circle']=circle.single_detect(image_path=file_path)
-    #                     if info['circle']!=param['circles']:
-    #                         info['hege']=0
-    #                 elif pername==4 and get_data.get("lengthSwitch"):
-    #                     info['lenth']=lenth.single_detect(image_path=file_path)
-    #                     if info['lenth']>param['length']+param['lengthError'] or info['lenth']<param['length']-param['lengthError']:
-    #                         info['hege']=0
-    #
-    #     else:
-    #         return jsonify({"msg": "地址不正确"})
-    #
-    #     info['address']=folder_path
-    #     info['standardid']=id_param
-    #     info['created']=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-    #     id=dict2sqlite(info,"gongjian",True)
-    #     info['id'] = id
-    #     return jsonify(info)
+
     @app.route('/BatchProcessingPic', methods=["POST"])
     def Process_Pic():
         # 用POST方式获取JSON数据
@@ -733,44 +643,7 @@ def create_app(test_config=None):
         
         return jsonify(res)
     
-    
-    # @app.route('/getinfo', methods=["POST", "GET"])
-    # def getinfo():
-    #     path=request.json.get('image_path')
-    #     query="SELECT * FROM gongjian WHERE address='{}'".format(path)
-    #     print(query)
-    #     result=query_db(query)
-    #     print(result)
-    #     return '1'
-    
-    # @app.route('/getAll', methods=["POST", "GET"])
-    # def getAll():
-    #     connection=db.get_db()
-    #     cursor=connection.cursor()
-    #     query="SELECT * FROM gongjian"
-    #     cursor.execute(query)
-    #     # print(query)
-    #     # query_db(query)
-    #     # 获取查询结果并转化为字典
-    #     print("-------",cursor.description)
-    #     columns = [column[0] for column in cursor.description]
-    #     print(columns)
-    #     result = []
-    #     for row in cursor.fetchall():
-    #         detectRes=dict(zip(columns, row))
-    #         paramId=detectRes['standardid']
-    #         # query="SELECT * FROM StandardParameters WHERE standardid=?", (paramId, )
-    #         cursor.execute("SELECT * FROM StandardParameters WHERE standardid=?", (paramId, ))
-    #         columnsParam = [column[0] for column in cursor.description]
-    #         param=cursor.fetchone()
-    #         paramRes=dict(zip(columnsParam, param))
-    #         res=dict(detectRes,**paramRes)
-    #         result.append(res)
-    #     # 打印结果
-    #     # for row in result:
-    #     #     print(row)
-    #     # print(type(result))
-    #     return result
+
     @app.route('/getAll', methods=["POST", "GET"])
     def getAll():
         get_data = request.get_json()
